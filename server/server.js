@@ -21,7 +21,9 @@ mongoose
   .catch((err) => console.log("DB CONNECTION ERR", err));
 
 //middleware
-app.use(morgan("dev"));
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'))
+}
 app.use(bodyParser.json({ limit: "2mb" }));
 app.use(cors());
 
@@ -32,11 +34,17 @@ fs.readdirSync("./routes").map((r) =>
 );
 
 //route
-app.get("/api", (req, res) => {
-  res.json({
-    data: "hey you hit node api",
-  });
-});
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')))
+
+  app.get('*', (req, res) =>
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
+  )
+} else {
+  app.get('/', (req, res) => {
+    res.send('API is running....')
+  })
+}
 
 //port
 const port = process.env.PORT || 8000;
